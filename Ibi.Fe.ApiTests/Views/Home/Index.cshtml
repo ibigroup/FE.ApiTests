@@ -25,6 +25,30 @@
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+        
+        // Load all of the routes
+        $.getJSON("http://api.citysdk.waag.org/admr.uk.gr.manchester/select/routes?geom", function (response) {
+            if (response && response.results) {
+                for (var i = response.results.length - 1; i >= 0; i--) {
+                    var thisItem = response.results[i];
+                    
+                    var geojsonFeature = {
+                        "type": "Feature",
+                        "properties": {
+                            "name": thisItem.name,
+                            "cdk_id": thisItem.cdk_id,
+                            "layer_id": thisItem.layer_id
+                        },
+                        "geometry": {
+                            "type": thisItem.geom.type,
+                            "coordinates": thisItem.geom.coordinates
+                        }
+                    };
+                    
+                    L.geoJson(geojsonFeature).addTo(map);
+                }
+            }
+        });
 
         // add a marker in the given location, attach some popup content to it and open the popup
         //L.marker([51.5, -0.09]).addTo(map)
