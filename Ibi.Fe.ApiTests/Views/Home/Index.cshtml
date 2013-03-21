@@ -10,7 +10,7 @@
     
     <style>
         #map {
-            height: 360px;
+            height: 560px;
         }
     </style>
 }
@@ -25,32 +25,44 @@
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
-        
+
+        function onEachFeature(feature, layer) {
+            // does this feature have a property named popupContent?
+            if (feature.properties && feature.properties.name) {
+                layer.bindPopup(feature.properties.name);
+            }
+        }
+
         // Load all of the routes
-        $.getJSON("http://api.citysdk.waag.org/admr.uk.gr.manchester/ptlines?geom&per_page=1000", function (response) {
+        $.getJSON("http://api.citysdk.waag.org/admr.uk.gr.manchester/nodes?geom&osm::amenity=parking&per_page=1000", function(response) {
             if (response && response.results) {
                 for (var i = response.results.length - 1; i >= 0; i--) {
                     var thisItem = response.results[i];
-                    
-                    var geojsonFeature = {
-                        "type": "Feature",
-                        "properties": {
-                            "name": thisItem.name,
-                            "cdk_id": thisItem.cdk_id,
-                            "layer_id": thisItem.layer_id
-                        },
-                        "geometry": {
-                            "type": thisItem.geom.type,
-                            "coordinates": thisItem.geom.coordinates
-                        }
-                    };
-                    
-                    L.geoJson(geojsonFeature).addTo(map);
+
+                    if (thisItem.name) {
+
+                        var geojsonFeature = {
+                            "type": "Feature",
+                            "properties": {
+                                "name": thisItem.name,
+                                "cdk_id": thisItem.cdk_id,
+                                "layer_id": thisItem.layer_id
+                            },
+                            "geometry": {
+                                "type": thisItem.geom.type,
+                                "coordinates": thisItem.geom.coordinates
+                            }
+                        };
+
+                        L.geoJson(geojsonFeature, {
+                            onEachFeature: onEachFeature
+                        }).addTo(map);
+                    }
                 }
             }
         });
 
-        // add a marker in the given location, attach some popup content to it and open the popup
+    // add a marker in the given location, attach some popup content to it and open the popup
         //L.marker([51.5, -0.09]).addTo(map)
         //    .bindPopup('A pretty CSS3 popup. <br> Easily customizable.')
         //    .openPopup();
